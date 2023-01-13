@@ -39,15 +39,43 @@ import multi_objective
 
 
 # DEFINE PARAMETERS
+# parameters, see Deb 2006
+# Delta_R = 20 # mm
+# L_max = 30 # mm
+# delta = 0.5 # mm
+# p_max = 1 # MPa
+# V_sr_max = 10 # m/s
+# n = 250 # rpm
+# mu = 0.5
+# s = 1.5
+# M_s = 40 # Nm
+# omega = pi * n/30. # rad/s
+# rho = 0.0000078 # kg/mm^3
+# T_max = 15 # s
+# M_f = 3 # Nm
+# I_z = 55 # kg*m^2
+# u = 1
+
+# CONSTRAINTS ARE THE SEIR EQUATIONS, OBJECTIVE FUNCTIONS ARE THE RMSE
+# PARAMETERS FOR COVID MODEL
+zeta = 0.05         # %, pre-symptomatic transmission effectiveness
+sigma = 0.2         # days^-1, infection rate
+symp = 0.75         # %, probability of developing symptoms
+alpha = 6.9*10e-5   # days^-1, death rate
+gamma = 0.14        # days^-1, recovery rate
+psi = 3             # days, time between diagnostic test and result
+epsilon = 0.05      # %, diagnostic test false negative rate
+
+
 
 # DEFINE PARAMETERS RANGE
-values = [0.0,  # alpha
-          0.0,  # beta
-          0.0,  # gamma
-          0.0,  # epsilon
-          0.0,  # initial exposed count
-          0.0,  # initial infectious count
-          0.0   # initial recovered count
+values = [arange(60, 81, 1),  # alpha
+          arange(1, 3, 0.1),  # beta
+          arange(5, 11, 0.5),  # gamma
+          arange(0.5, 0.9, 0.2),  # epsilon
+          arange(100, 291, 1),  # initial exposed count
+          arange(100, 151, 1),  # initial infectious count
+          arange(50, 91, 1)   # initial recovered count
           ]
 
 
@@ -109,10 +137,10 @@ class DiskClutchBrake(benchmarks.Benchmark):
         for c in candidates:
             f1 = -(1-u) * beta * s * i
             f2 = (1-u) * beta * s * i - (alpha * e)
-            f3 = (alpha * e) - (gamma * i)
-            f4 = gamma * i
+            
+            #rmsd = 
 
-            fitness.append(ConstrainedPareto([f1, f2, f3, f4],
+            fitness.append(ConstrainedPareto([f1, f2],
                                               self.constraint_function(c),
                                               self.maximize))
 
@@ -122,7 +150,14 @@ class DiskClutchBrake(benchmarks.Benchmark):
         if not self.constrained:
             return 0
         """Return the magnitude of constraint violations."""
+
+        f1 = -(1-u) * beta * s * i
+        f2 = (1-u) * beta * s * i - (alpha * e)
+        f3 = (alpha * e) - (gamma * i)
+        f4 = gamma * i
+
         violations = 0
+
 
         return violations 
 

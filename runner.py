@@ -46,14 +46,14 @@ args["fig_title"] = 'NSGA-2'
 
 
 if __name__ == "__main__" :
-    print(len(sys.argv[1]))
-    print(args["pop_size"])
-    print(args["max_generations"])
-    # if len(sys.argv) > 1 :
-    #     rng = NumpyRandomWrapper(int(sys.argv[1]))
-    # else :
-    #     rng = NumpyRandomWrapper()
-    rng = NumpyRandomWrapper(int(sys.argv[1]))
+    # print(len(sys.argv[1]))
+    # print(args["pop_size"])
+    # print(args["max_generations"])
+    if len(sys.argv) > 1 :
+        rng = NumpyRandomWrapper(int(sys.argv[1]))
+    else :
+        rng = NumpyRandomWrapper()
+    # rng = NumpyRandomWrapper(int(sys.argv[1]))
     
     final_pop, final_pop_fitnesses = multi_objective.run_nsga2(rng, problem, display=display, 
                                          num_vars=7, **args)
