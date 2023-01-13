@@ -65,6 +65,10 @@ alpha = 6.9*10e-5   # days^-1, death rate
 gamma = 0.14        # days^-1, recovery rate
 psi = 3             # days, time between diagnostic test and result
 epsilon = 0.05      # %, diagnostic test false negative rate
+N = 60*10e2         # number of people in a chosen italian region
+t_incubation = 5.1  # days, time of incubation
+t_infective = 3.3   # days, time of an infected individual being infectious
+R0 = 2.4            # transmission rate
 
 
 
@@ -77,6 +81,28 @@ values = [arange(60, 81, 1),  # alpha
           arange(100, 151, 1),  # initial infectious count
           arange(50, 91, 1)   # initial recovered count
           ]
+
+
+e0 = 1/N
+i0 = 0.00
+r0 = 0.00
+s0 = 1 - e0 - i0 - r0 
+x0 = [s0, e0, i0, r0]
+
+alpha = 1/t_incubation
+gamma = 1/t_infective
+beta = R0*gamma
+
+def covid(x, t):
+    s, e, i, r = x 
+    dx = np.zeros(4)
+    dx[0] = -(1-u) * beta * s * i
+    dx[1] = (1-u) * beta * s * i - (alpha * e)
+    dx[2] = (alpha * e) - (gamma * i)
+    dx[3] = gamma * i
+    return dx
+
+t = np.linspace(0, 200, 101)
 
 
 class DiskClutchBounder(object):
@@ -135,7 +161,7 @@ class DiskClutchBrake(benchmarks.Benchmark):
     def evaluator(self, candidates, args):
         fitness = []
         for c in candidates:
-            f1 = -(1-u) * beta * s * i
+            f1 = odeint(covid, x0, t)
             f2 = (1-u) * beta * s * i - (alpha * e)
             
             #rmsd = 
