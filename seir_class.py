@@ -84,7 +84,7 @@ class ConstrainedPareto(Pareto):
 class SEIR(benchmarks.Benchmark):
     
     def __init__(self, constrained=False) : 
-        benchmarks.Benchmark.__init__(self, 4, 2) # TODO come inzializzarlo?? 
+        benchmarks.Benchmark.__init__(self, 3, 2) # TODO come inzializzarlo?? 
         self.bounder = SEIRBounder()
         self.maximize = False
         self.constrained=constrained
