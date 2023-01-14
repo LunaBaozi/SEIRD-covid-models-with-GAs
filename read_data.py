@@ -40,7 +40,7 @@ def get_data_interval(start_date, end_date, cod_reg, col=["data", "nuovi_positiv
 
         # daily_data = pd.concat([daily_data, current_df])
     print("END FETCHING DATA!")
-    cumulative_data.set_index("data", inplace=True)
+    #cumulative_data.set_index("data", inplace=True)
     #data.set_index("data", inplace=True)
     return cumulative_data
 
