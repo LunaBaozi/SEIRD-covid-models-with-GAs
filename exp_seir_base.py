@@ -16,7 +16,7 @@ args["pop_size"] = 30
 args["max_generations"] = 100
 
 display = True
-constrained = False
+constrained = False  # True
 
 if __name__ == '__main__':
     cases = read_data.get_data_interval('20200301', '20200401', 22)
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     args["fig_title"] = 'NSGA-2'
 
     #initial conditions
-    N = 500000
+    N = 542166
     I_0 = tot_pos[0] - tot_rec[0] - tot_dec[0]
     R_0 = tot_rec[0]
     D_0 = tot_dec[0]
