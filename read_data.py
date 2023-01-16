@@ -14,7 +14,7 @@ def daterange(start_date, end_date):
 def read_csv(url):
     return pd.read_csv(url, parse_dates=[0])
 
-def get_data_from_day(cod_reg, yyyymmdd, col, url_base='https://github.com/pcm-dpc/COVID-19/tree/master/dati-regioni'):
+def get_data_from_day(cod_reg, yyyymmdd, col, url_base='https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni-'):
     url_full = url_base+yyyymmdd+'.csv'
     df = read_csv(url_full)
     return df.loc[df["codice_regione"] == cod_reg, col]
@@ -57,7 +57,7 @@ def get_data_interval(start_date, end_date, cod_reg, col=["data", "nuovi_positiv
     infected_array = infected - recovered
     print("infec: ", infected_array)
     '''
-    
+
     return cumulative_data
 
 def augment_data(df):

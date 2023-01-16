@@ -112,31 +112,29 @@ class SEIR(benchmarks.Benchmark):
             time = args["time"]
             I = args["I"]
             R = args["R"]
-            pop = (initE, initI, initR, initN)
+            pop = (initI, initR, initN)
 
             rmse_I, rmse_R = SEIR_solver(time, (initE, initI, initR, initN), (beta, sigma, gamma), infected=I, recovered=R)
             # TODO how to use the ConstrainedPareto here ??
 
-            fitness.append([rmse_I + rmse_R])
-            # fitness.append(ConstrainedPareto([rmse_I, rmse_R], self.constraint_function(c, args, pop), self.maximize))     
+            #fitness.append([rmse_I])
+            fitness.append(ConstrainedPareto([rmse_I, rmse_R], self.constraint_function(c, args), self.maximize))     
         
         return fitness
 
     # TODO constraints !!
-    def constraint_function(self, candidate, args, pop):
+    def constraint_function(self, candidate, args):
         if not self.constrained :
             return 0
         violations = 0
-        E, I, R, N = pop
-        S = N - (E + I + R)
-        # constrain 1: S + E + I + R = N (total population)
-        constrain1 = abs(S + E + I + R - N)
-        if constrain1 != 0:
-            violations -= constrain1
-        # constrain 2: E, I, R >= 0
-        constrain2 = max(E, I, R, 0)
-        if constrain2 < 0:
-            violations -= -1*(constrain2)
+        beta, sigma, gamma, e0 = candidate
+        i0, r0, N0 = args['init']
+        s0 = N0 - (e0 + i0 + r0)
+        
+        if s0+e0+i0+r0 != N0:
+            violations -= abs(s0+e0+i0+r0)
+            print(violations)
+    
         return violations
 
 @mutator
