@@ -38,8 +38,8 @@ def run_nsga2(random, problem, display=False, num_vars=0, use_bounder=True,
                           generator=problem.generator,
                           **kwargs)         
     
-    best_guy = final_pop[0].candidate[0:num_vars]
-    best_fitness = final_pop[0].fitness
+    #best_guy = final_pop[0].candidate[0:num_vars]
+    #best_fitness = final_pop[0].fitness
     #final_pop_fitnesses = asarray([guy.fitness for guy in algorithm.archive])
     #final_pop_candidates = asarray([guy.candidate[0:num_vars] for guy in algorithm.archive])
     final_pop_fitnesses = asarray([guy.fitness for guy in final_pop])

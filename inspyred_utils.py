@@ -16,7 +16,6 @@ class NumpyRandomWrapper(RandomState):
         super(NumpyRandomWrapper, self).__init__(seed)
         
     def sample(self, population, k):
-        print(population)
         if isinstance(population, int) :
             population = range(population)           
         

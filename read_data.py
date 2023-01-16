@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 from joblib import Memory
 from datetime import date, timedelta
 memory = Memory(location='data_cache/', verbose=0)
@@ -18,7 +19,7 @@ def get_data_from_day(cod_reg, yyyymmdd, col, url_base='https://raw.githubuserco
     df = read_csv(url_full)
     return df.loc[df["codice_regione"] == cod_reg, col]
 
-def get_data_interval(start_date, end_date, cod_reg, col=["data", "nuovi_positivi", "totale_positivi", "totale_ospedalizzati", "deceduti", "dimessi_guariti"]):
+def get_data_interval(start_date, end_date, cod_reg, col=["data", "nuovi_positivi", "totale_positivi", "totale_ospedalizzati", "deceduti", "dimessi_guariti", "totale_casi"]):
     daily_data = pd.DataFrame(columns=col)
     cumulative_data = pd.DataFrame()
     yyyy_s = int(start_date[0:4])
@@ -34,7 +35,8 @@ def get_data_interval(start_date, end_date, cod_reg, col=["data", "nuovi_positiv
     for single_date in daterange(start_d, end_d):
         current_date = single_date.strftime("%Y%m%d")
         current_df = get_data_from_day(cod_reg, current_date, col)
-        cumulative_df = current_df[["data", "totale_positivi", "deceduti", "dimessi_guariti"]]
+        cumulative_df = current_df[["data", "totale_positivi", "deceduti", "dimessi_guariti", "totale_casi"]]
+        
         cumulative_data = pd.concat([cumulative_data, cumulative_df])
         daily_df = current_df[["data", "nuovi_positivi", "deceduti", "dimessi_guariti"]]
 
@@ -42,6 +44,20 @@ def get_data_interval(start_date, end_date, cod_reg, col=["data", "nuovi_positiv
     print("END FETCHING DATA!")
     #cumulative_data.set_index("data", inplace=True)
     #data.set_index("data", inplace=True)
+    '''
+    death = cumulative_data["deceduti"].values
+    death_array = death
+    print("dec:", death_array)
+
+    recovered = cumulative_data["dimessi_guariti"].values
+    recovered_array = recovered
+    print("rec:", recovered_array)
+
+    infected = cumulative_data["totale_casi"].values
+    infected_array = infected - recovered
+    print("infec: ", infected_array)
+    '''
+    
     return cumulative_data
 
 def augment_data(df):
@@ -51,12 +67,13 @@ def augment_data(df):
     print(cumulative)
 
 if __name__ == "__main__":
-    data = get_data_interval('20200301', '20200401', 22)
+    data = get_data_interval('20210401', '20210501', 22)
     print(data)
-    data.plot()
-    plt.show()
 
-    # augment_data(data)
+    #data.plot()
+    #plt.show()
+
+    #augment_data(data)
 
 
     

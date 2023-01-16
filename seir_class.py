@@ -5,11 +5,16 @@ from scipy.integrate import odeint
 from pylab import *
 import copy
 
+MIN_BETA = 1e-3
+MAX_BETA = 1.0
+MIN_INCUBATION_PERIOD = 2.0
+MAX_INCUBATION_PERIOD = 14
+MIN_INFECTIOUS_PERIOD = 3.0
 # parameters
 # TODO
 #possible values
 # TODO check the possible range of gamma beta and sigma
-values = [arange(0.1,0.2,0.01), arange(0.1,0.5,0.05), arange(0.01,0.1,0.01)]
+values = [arange(0.1,0.2,0.01), arange(0.1,0.5,0.05), arange(0.01,0.1,0.01), arange(0, 3000, 10)]
 
 def SEIR_model(z, t, beta, sigma, gamma):
     """
@@ -27,8 +32,10 @@ def SEIR_solver(t, initial_conditions, params, infected, recovered):
     initE, initI, initR, initN = initial_conditions
     beta, sigma, gamma = params
     initS = initN - (initE + initI + initR)
+
     res = odeint(SEIR_model, [initS, initE, initI, initR], t, args=(beta, sigma, gamma))
     S, E, I, R = res.T
+    #print(I)
     rmse_I = np.sqrt(np.mean((I - infected) ** 2))
     rmse_R = np.sqrt(np.mean((R - recovered) ** 2))
     return rmse_I, rmse_R
@@ -45,7 +52,7 @@ class ConstrainedPareto(Pareto):
     def __init__(self, values=None, violations=None, ec_maximize=True):
         Pareto.__init__(self, values)
         self.violations = violations
-        self.ec_maximize=ec_maximize
+        self.ec_maximize = ec_maximize
     
     def __lt__(self, other):
         if self.violations is None :
@@ -84,44 +91,53 @@ class ConstrainedPareto(Pareto):
 class SEIR(benchmarks.Benchmark):
     
     def __init__(self, constrained=False) : 
-        benchmarks.Benchmark.__init__(self, 3, 2) # TODO come inzializzarlo?? 
+        benchmarks.Benchmark.__init__(self, 4, 1) # TODO come inzializzarlo?? 
         self.bounder = SEIRBounder()
         self.maximize = False
         self.constrained=constrained
     
     def generator(self, random, args):
-        beta = random.uniform(0.05, 0.5) 
-        sigma = random.uniform(0.01, 0.1) 
-        gamma = random.uniform(0.01, 0.2)
-        return [beta, sigma, gamma]
+        beta = random.uniform(1e-3, 5.0) 
+        sigma = random.uniform(0.05, 0.5) 
+        gamma = random.uniform(0.05, 0.5)
+        E = random.uniform(0, 3000)
+        return [beta, sigma, gamma, E]
     
     def evaluator(self, candidates, args):
         fitness = []
         for c in candidates:
-            beta, sigma, gamma = c
+            beta, sigma, gamma, initE = c
             initial_conditions = args["init"]
+            initI, initR, initN = initial_conditions
             time = args["time"]
             I = args["I"]
             R = args["R"]
+            pop = (initE, initI, initR, initN)
 
-            rmse_I, rmse_R = SEIR_solver(time, initial_conditions, (beta, sigma, gamma), infected=I, recovered=R)
+            rmse_I, rmse_R = SEIR_solver(time, (initE, initI, initR, initN), (beta, sigma, gamma), infected=I, recovered=R)
             # TODO how to use the ConstrainedPareto here ??
-            # fitness.append((rmse_I, rmse_R))
-            fitness.append(ConstrainedPareto([rmse_I, rmse_R], self.constraint_function(c, args), self.maximize))     
+
+            fitness.append([rmse_I + rmse_R])
+            # fitness.append(ConstrainedPareto([rmse_I, rmse_R], self.constraint_function(c, args, pop), self.maximize))     
         
         return fitness
 
     # TODO constraints !!
-    def constraint_function(self, candidate, args):
+    def constraint_function(self, candidate, args, pop):
         if not self.constrained :
             return 0
-        N = args["N"]
-        S, E, I, R = candidate
+        violations = 0
+        E, I, R, N = pop
+        S = N - (E + I + R)
         # constrain 1: S + E + I + R = N (total population)
         constrain1 = abs(S + E + I + R - N)
+        if constrain1 != 0:
+            violations -= constrain1
         # constrain 2: E, I, R >= 0
         constrain2 = max(E, I, R, 0)
-        return constrain1, constrain2
+        if constrain2 < 0:
+            violations -= -1*(constrain2)
+        return violations
 
 @mutator
 def SEIR_mutation(random, candidate, args):
