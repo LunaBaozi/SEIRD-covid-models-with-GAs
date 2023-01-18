@@ -99,10 +99,10 @@ def plot_difference(real_data, pred_parameters, N):
 
     t = np.linspace(0, len(real_data['days'])+1, len(real_data['days']))
 
-    beta, sigma, gamma, e0 = pred_parameters
+    beta, sigma, gamma, s0, e0 = pred_parameters
     i0 = real_I[0]
     r0 = real_R[0]
-    s0 = N - (e0 + i0 + r0)
+
     x0 = [s0, e0, i0, r0]
 
     x = odeint(SEIR_model, x0, t, args=(beta, sigma, gamma))

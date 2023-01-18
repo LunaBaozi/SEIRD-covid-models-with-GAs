@@ -5,16 +5,7 @@ from scipy.integrate import odeint
 from pylab import *
 import copy
 
-MIN_BETA = 1e-3
-MAX_BETA = 1.0
-MIN_INCUBATION_PERIOD = 2.0
-MAX_INCUBATION_PERIOD = 14
-MIN_INFECTIOUS_PERIOD = 3.0
-# parameters
-# TODO
-#possible values
-# TODO check the possible range of gamma beta and sigma
-values = [arange(0.1,0.2,0.01), arange(0.1,0.5,0.05), arange(0.01,0.1,0.01), arange(0, 3000, 10)]
+values = [np.arange(0.1,0.2,0.01), np.arange(0.1,0.5,0.05), np.arange(0.01,0.1,0.01), arange(0, 3000, 10), arange(0, 3000, 10)]
 
 def SEIR_model(z, t, beta, sigma, gamma):
     """
@@ -29,9 +20,9 @@ def SEIR_model(z, t, beta, sigma, gamma):
     return [dSdt, dEdt, dIdt, dRdt]
 
 def SEIR_solver(t, initial_conditions, params, infected, recovered):
-    initE, initI, initR, initN = initial_conditions
+    initS, initE, initI, initR, initN = initial_conditions
     beta, sigma, gamma = params
-    initS = initN - (initE + initI + initR)
+    # initS = initN - (initE + initI + initR)
 
     res = odeint(SEIR_model, [initS, initE, initI, initR], t, args=(beta, sigma, gamma))
     S, E, I, R = res.T
@@ -100,13 +91,14 @@ class SEIR(benchmarks.Benchmark):
         beta = random.uniform(1e-3, 5.0) 
         sigma = random.uniform(0.05, 0.5) 
         gamma = random.uniform(0.05, 0.5)
+        S = random.uniform(0, 3000)
         E = random.uniform(0, 3000)
-        return [beta, sigma, gamma, E]
+        return [beta, sigma, gamma,S, E]
     
     def evaluator(self, candidates, args):
         fitness = []
         for c in candidates:
-            beta, sigma, gamma, initE = c
+            beta, sigma, gamma, initS, initE = c
             initial_conditions = args["init"]
             initI, initR, initN = initial_conditions
             time = args["time"]
@@ -114,11 +106,16 @@ class SEIR(benchmarks.Benchmark):
             R = args["R"]
             pop = (initI, initR, initN)
 
-            rmse_I, rmse_R = SEIR_solver(time, (initE, initI, initR, initN), (beta, sigma, gamma), infected=I, recovered=R)
+            rmse_I, rmse_R = SEIR_solver(time, (initS, initE, initI, initR, initN), (beta, sigma, gamma), infected=I, recovered=R)
             # TODO how to use the ConstrainedPareto here ??
 
-            #fitness.append([rmse_I])
-            fitness.append(ConstrainedPareto([rmse_I, rmse_R], self.constraint_function(c, args), self.maximize))     
+            if self.constraint_function(c, args) > 0:
+                fitness.append([rmse_I, rmse_R])
+            else:
+                fitness.append([-1, -1])
+
+            # fitness.append([rmse_I + rmse_R])
+            # fitness.append(ConstrainedPareto([rmse_I, rmse_R], self.constraint_function(c, args), self.maximize))     
         
         return fitness
 
@@ -127,13 +124,15 @@ class SEIR(benchmarks.Benchmark):
         if not self.constrained :
             return 0
         violations = 0
-        beta, sigma, gamma, e0 = candidate
+        beta, sigma, gamma, s0, e0 = candidate
         i0, r0, N0 = args['init']
-        s0 = N0 - (e0 + i0 + r0)
+        # s0 = N0 - (e0 + i0 + r0)
         
         if s0+e0+i0+r0 != N0:
-            violations -= abs(s0+e0+i0+r0)
-            print(violations)
+            violations += s0+e0+i0+r0
+            return 1
+        else:
+            return 0
     
         return violations
 
