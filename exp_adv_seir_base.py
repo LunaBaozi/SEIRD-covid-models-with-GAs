@@ -6,18 +6,18 @@ from scipy.integrate import odeint
 import inspyred
 import random
 from inspyred_utils import NumpyRandomWrapper
-from seir_class import SEIR, SEIR_mutation
+from advance_seir_class import SEIR, SEIR_mutation
 import sys
 from inspyred.ec import variators
 import seir_objective
-from seir_model_plot_utils import plot_difference
+from seir_model_plot_utils import plot_difference, plot_difference_adv_A
 
 args = {}
 args["pop_size"] = 30
-args["max_generations"] = 70
+args["max_generations"] = 100
 
-display = True
-constrained = True
+display = False
+constrained = False
 
 if __name__ == '__main__':
     cases = read_data.get_data_interval('20200301', '20200401', 22)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         rng = NumpyRandomWrapper()
 
     final_pop, final_pop_fitnesses = seir_objective.run_nsga2(rng, problem, display=display, 
-                                         num_vars=5, **args)
+                                         num_vars=7, **args)
 
     print("Final Population\n", final_pop)
     print()
@@ -67,8 +67,8 @@ if __name__ == '__main__':
     show()
 
     cases = read_data.get_data_interval('20200301', '20200601', 22)
-    print(cases)
     cases['data'] = pd.to_datetime(cases['data'])
     data = cases.sort_values('data')
     data['days'] = (data['data'] - data['data'].min()).dt.days
-    plot_difference(data, final_pop[0], N)
+
+    plot_difference_adv_A(data, final_pop[0], N)
