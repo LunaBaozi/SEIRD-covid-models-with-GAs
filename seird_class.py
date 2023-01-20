@@ -1,18 +1,18 @@
 from inspyred import benchmarks 
 from inspyred.ec.emo import Pareto
 from inspyred.ec.variators import mutator
-from scipy.integrate import odeint
+from SEIR_models.seird import SEIRD_solver
 from pylab import *
 import copy
-from SEIR_models.seir import SEIR_solver
 
 bounds = [
-    (0.1, 0.5), # beta (infection rate beta = R0*gamma, R0 about 5.7 or more)
-    (0.2, 0.4), # sigma (incubation period, 1/3 to 1/5 about)
-    (0.04, 0.3), # gamma (duration of illness 1/18 to 1/5)
-    (0, 5000), # E
-    (0, 5000), # I
-    (0, 5000) # R
+    (5e-6, 1e-4), # alpha (infection fatality rate)
+    (5e-2, 1.), # beta (infection rate beta = R0*gamma, R0 about 5.7 or more)
+    (1/5.6, 1/4.8), # sigma (incubation period, 1/3 to 1/5 about)
+    (1/18, 1/5), # gamma (duration of illness 1/18 to 1/5)
+    (0, 1000), # E
+    (0, 1000), # I
+    (0, 1000) # R
     ]
 
 class SEIRBounder(object):
@@ -23,8 +23,7 @@ class SEIRBounder(object):
             candidate[i] = max(self.bounds[i][0], min(self.bounds[i][1], c))
         return candidate
 
-class SEIR(benchmarks.Benchmark):
-    
+class SEIRD(benchmarks.Benchmark):
     def __init__(self, constrained=False) : 
         benchmarks.Benchmark.__init__(self, len(bounds), 2)
         self.bounder = SEIRBounder(bounds)
@@ -40,16 +39,18 @@ class SEIR(benchmarks.Benchmark):
     def evaluator(self, candidates, args):
         fitness = []
         for c in candidates:
-            beta, sigma, gamma, initE, initI, initR = c
+            alpha, beta, sigma, gamma, initE, initI, initR = c
             initial_conditions = args["init"]
-            _, _, initN = initial_conditions
+            _, _, initD, initN = initial_conditions
             time = args["time"]
             I = args["I"]
             R = args["R"]
-            initS = initN - initE - initI - initR
-            rmse_I, rmse_R = SEIR_solver(time, (initS, initE, initI, initR, initN), (beta, sigma, gamma), infected=I, recovered=R)
- 
-            fitness.append(Pareto([rmse_I, rmse_R]))     
+            D = args["D"]
+            initS = initN - initE - initI - initR - initD
+            rmse_I, rmse_R, rmse_D = SEIRD_solver(time, (initS, initE, initI, initR, initD, initN), (alpha, beta, sigma, gamma), infected=I, recovered=R, death=D)
+            
+            # fitness.append([rmse_D])
+            fitness.append(Pareto([rmse_I, rmse_R, rmse_D]))
         
         return fitness
 
