@@ -16,11 +16,11 @@ args = {}
 args["pop_size"] = 20
 args["max_generations"] = 200
 
-display = True
-constrained = False
+display = False
+constrained = True
 
 if __name__ == '__main__':
-    cases = read_data.get_data_interval('20200301', '20200501', 22)
+    cases = read_data.get_data_interval('20210301', '20210401', 22)
     print(cases)
     cases['data'] = pd.to_datetime(cases['data'])
     data = cases.sort_values('data')
@@ -31,9 +31,8 @@ if __name__ == '__main__':
     tot_rec = data['dimessi_guariti'].values
     tot_dec = data['deceduti'].values
 
-
     args["variator"] = [variators.blend_crossover, SEIR_mutation]   
-    args["fig_title"] = 'NSGA-2'
+    args["fig_title"] = 'Plot - EA'
 
     #initial conditions
     N = 542166
@@ -55,8 +54,9 @@ if __name__ == '__main__':
     else :
         rng = NumpyRandomWrapper()
 
+    # COMMENT THIS PART TO USE THE STANDARD GA
     final_pop, final_pop_fitnesses = seir_objective.run_nsga2(rng, problem, display=display, 
-                                         num_vars=8, **args)
+                                        num_vars=5, **args)
 
     print("Final Population\n", final_pop)
     print()
@@ -65,9 +65,27 @@ if __name__ == '__main__':
     ioff()
     show()
 
-    cases = read_data.get_data_interval('20200301', '20200601', 22)
-    print(cases)
+    cases = read_data.get_data_interval('20210301', '20210601', 22)
     cases['data'] = pd.to_datetime(cases['data'])
     data = cases.sort_values('data')
     data['days'] = (data['data'] - data['data'].min()).dt.days
     plot_difference_seird(data, final_pop[0], N)
+    #--------------------------------------------------------------------
+
+    # UNCOMMENT IF YOU WANT TO USE THE STANDARD GA
+    # final_pop, final_pop_fitnesses = seir_objective.run_ga(rng, problem, display=display, 
+    #                                      num_vars=5, **args)
+
+    # print("Final Population\n", final_pop)
+    # print()
+    # print("Final Population Fitnesses\n", final_pop_fitnesses)
+
+    # ioff()
+    # show()
+
+    # cases = read_data.get_data_interval('20210301', '20210601', 22)
+    # cases['data'] = pd.to_datetime(cases['data'])
+    # data = cases.sort_values('data')
+    # data['days'] = (data['data'] - data['data'].min()).dt.days
+    # plot_difference_seird(data, final_pop, N)
+    #--------------------------------------------------------------------

@@ -4,16 +4,23 @@ from inspyred.ec.variators import mutator
 from SEIR_models.seird import SEIRD_solver
 from pylab import *
 import copy
+import math
 
 bounds = [
-    (5e-6, 1e-4), # alpha (infection fatality rate)
-    (5e-2, 1.), # beta (infection rate beta = R0*gamma, R0 about 5.7 or more)
-    (1/5.6, 1/4.8), # sigma (incubation period, 1/3 to 1/5 about)
-    (1/18, 1/5), # gamma (duration of illness 1/18 to 1/5)
-    (0, 1000), # E
-    (0, 1000), # I
-    (0, 1000) # R
+    (1e-5, 1), # alpha (infection fatality rate)
+    (1e-4, 1), # beta (infection rate beta = R0*gamma, R0 about 5.7 or more)
+    (0.1, 17), # sigma (incubation period, 1/3 to 1/5 about)
+    (1e-5, 1), # gamma (duration of illness 1/18 to 1/5)
+    (0, 50000) # E
     ]
+
+# bounds = [
+#     (8e-5, 1e-4), # alpha (infection fatality rate)
+#     (5e-3, 1.), # beta (infection rate beta = R0*gamma, R0 about 5.7 or more)
+#     (1/5.6, 1/4.8), # sigma (incubation period, 1/3 to 1/5 about)
+#     (1e-5, 1), # gamma (duration of illness 1/18 to 1/5)
+#     (0, 50000), # E
+#     ]
 
 class SEIRBounder(object):
     def __init__(self, bounds):
@@ -39,20 +46,36 @@ class SEIRD(benchmarks.Benchmark):
     def evaluator(self, candidates, args):
         fitness = []
         for c in candidates:
-            alpha, beta, sigma, gamma, initE, initI, initR = c
+            alpha, beta, sigma, gamma, initE = c
             initial_conditions = args["init"]
-            _, _, initD, initN = initial_conditions
+            initI, initR, initD, initN = initial_conditions
             time = args["time"]
-            I = args["I"]
-            R = args["R"]
-            D = args["D"]
+            infected = args["I"]
+            recovered = args["R"]
+            deceased = args["D"]
             initS = initN - initE - initI - initR - initD
-            rmse_I, rmse_R, rmse_D = SEIRD_solver(time, (initS, initE, initI, initR, initD, initN), (alpha, beta, sigma, gamma), infected=I, recovered=R, death=D)
-            
-            # fitness.append([rmse_D])
-            fitness.append(Pareto([rmse_I, rmse_R, rmse_D]))
-        
+            res = SEIRD_solver(time, (initS, initE, initI, initR, initD, initN), (alpha, beta, sigma, gamma))
+            S, E, I, R, D, _ = res.T
+            rmse_I = np.sqrt(np.mean((I - infected) ** 2))
+            rmse_R = np.sqrt(np.mean((R - recovered) ** 2))
+            rmse_D = np.sqrt(np.mean((D - deceased) ** 2))
+
+            # COMMENT THIS PART FOR THE STANDARD GA
+            constraint_violation = self.constraint_function(c, S, E, I, R, D, initN)
+            fitness.append((rmse_D + rmse_I, rmse_R, constraint_violation))
+            # ---------------------------------------------------------------------------
+
+            # UNCOMMENT IF YOU WANT TO USE THE STANDARD GA
+            # fitness.append(rmse_D  + rmse_I + rmse_D)
+
         return fitness
+
+    def constraint_function(self, candidate, S, E, I, R, D, N):
+        if not self.constrained :
+            return 0
+
+        N_model = S[-1] + E[-1] + I[-1] + R[-1] + D[-1]
+        return abs(math.ceil(N_model) - N)
 
 @mutator
 def SEIR_mutation(random, candidate, args):
