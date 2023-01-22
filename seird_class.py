@@ -7,7 +7,7 @@ import copy
 import math
 
 bounds = [
-    (1e-5, 1), # alpha (infection fatality rate)
+    (1e-4, 1), # alpha (infection fatality rate)
     (1e-4, 1), # beta (infection rate beta = R0*gamma, R0 about 5.7 or more)
     (0.1, 17), # sigma (incubation period, 1/3 to 1/5 about)
     (1e-5, 1), # gamma (duration of illness 1/18 to 1/5)

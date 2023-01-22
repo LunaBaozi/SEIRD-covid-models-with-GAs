@@ -13,10 +13,10 @@ import seir_objective
 from seir_model_plot_utils import plot_difference_seird
 
 args = {}
-args["pop_size"] = 20
-args["max_generations"] = 200
+args["pop_size"] = 70
+args["max_generations"] = 300
 
-display = False
+display = True
 constrained = True
 
 if __name__ == '__main__':
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     args["variator"] = [variators.blend_crossover, SEIR_mutation]   
     args["fig_title"] = 'Plot - EA'
-
+    # args["fitness_weights"] = [0.01, 1.5]
     #initial conditions
     N = 542166
     I_0 = tot_pos[0]
