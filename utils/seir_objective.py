@@ -6,8 +6,8 @@ from inspyred.swarm import PSO
 from inspyred.ec import terminators, variators, replacers, selectors
 from inspyred.ec import EvolutionaryComputation
 
-import inspyred_utils
-import plot_utils
+import utils.inspyred_utils as inspyred_utils
+import utils.plot_utils as plot_utils
 
 def run_nsga2(random, problem, display=False, num_vars=0, use_bounder=True,
         variator=None, **kwargs) :

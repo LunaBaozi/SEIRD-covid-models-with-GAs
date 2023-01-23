@@ -2,8 +2,8 @@ from pylab import *
 import sys
 import numpy as np
 
-from inspyred_utils import CombinedObjectives
-from inspyred_utils import single_objective_evaluator
+from utils.inspyred_utils import CombinedObjectives
+from utils.inspyred_utils import single_objective_evaluator
 
 def plot_1D(axis, problem, x_limits) :
     dx = (x_limits[1] - x_limits[0])/200.0
