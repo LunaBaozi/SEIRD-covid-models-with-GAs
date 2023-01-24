@@ -2,6 +2,7 @@
 Solving SEIR ODE models for COVID-19 parameter prediction with evolutionary algorithms.
 
 ## Run SEIRD model
+Create a new conda environment with `environment.yml`. Activate the environment.  
 Enter the SEIRD_model folder and run `runner.py`. The folder is self-contained.  
 `inspyred_utils.py` contains functions from the Inspyred Python library.  
 `multiobjective.py` contains functions for running single- and multi-objective optimization.  
