@@ -5,7 +5,7 @@ from inspyred_utils import NumpyRandomWrapper
 from seird_problem import SEIRD, SEIRD_mutation
 import multiobjective as multiobjective
 import read_data
-from plot_utils import plotting_function_model
+from seird_plot_utils import plotting_function_model
 
 import sys
 import pandas as pd
@@ -26,8 +26,9 @@ display = False
 args = {}
 args["pop_size"] = 30
 args["max_generations"] = 100
-# f1 is death, f2 is recovered, f3 is infectious
-args["fitness_weights"] = [0.8, 0.1, 0.1]
+# f1 is RMSE deathS, f2 is RMSE recovered, f3 is RMSE infectious
+# args["fitness_weights"] = [0.8, 0.1, 0.1]
+args["fitness_weights"] = [0.9, 0.1]
 
 display = True
 constrained = False
